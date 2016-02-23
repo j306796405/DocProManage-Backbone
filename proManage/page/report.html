@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<head>
+	<meta charset="utf-8">
+	<title>ECharts</title>
+	<link rel="stylesheet" type="text/css" href="style/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="style/bootstrap-datetimepicker.min.css">
+	<link rel="stylesheet" type="text/css" href="style/main.css">
+</head>
+<body>
+<div id="base_hd" class="base_hd">
+	<div class="header">
+		<img src="img/logo.png">
+		<h1 class="m-title">Projects Docs</h1>
+		<a class="version" href="version.html" target="_blank">V1.2</a>
+		<a class="m-list-link" href="#list">项目列表</a>
+		<a href="#addItem" class="label label-primary btn-add">
+			<span class="glyphicon ico-plus"> </span>创建项目
+		</a>
+	</div>
+</div>
+<div class="report-wrap">
+	<form class="form-inline echarts-filter-box">
+		<div class="form-group">
+			<label>分类</label>
+			<select class="form-control" name="type">
+				<option value="proClass">项目类型</option>
+				<option value="tag">业务线</option>
+			</select>
+		</div>
+		<div class="form-group">
+			<label for="startDate" class="control-label">开始日期</label>
+			<div class="input-group date form_date col-md-5" data-date="" data-date-format="yyyy-mm-dd" data-link-field="startDate" data-link-format="yyyy-mm-dd">
+				<input class="form-control" size="16" type="text" value="" readonly>
+				<span class="input-group-addon">
+					<span class="glyphicon glyphicon-calendar"></span>
+				</span>
+			</div>
+			<input type="hidden" id="startDate" name="startDate" value="" />
+			<br />
+		</div>
+		<div class="form-group">
+			<label for="endDate" class="control-label">结束日期</label>
+			<div class="input-group date form_date col-md-5" data-date="" data-date-format="yyyy-mm-dd" data-link-field="endDate" data-link-format="yyyy-mm-dd">
+				<input class="form-control" size="16" type="text" value="" readonly>
+				<span class="input-group-addon">
+					<span class="glyphicon glyphicon-calendar"></span>
+				</span>
+			</div>
+			<input type="hidden" id="endDate" name="endDate" value="" />
+			<br />
+		</div>
+		<a href="javascript:;" class="btn btn-primary btn-search" id="btn-search">搜索</a>
+	</form>
+	<div id="main" class="echarts-wrap"></div>
+</div>
+
+
+<!-- ECharts单文件引入 -->
+<script src="lib/jquery-2.1.4.min.js"></script>
+<script src="http://echarts.baidu.com/build/dist/echarts.js"></script>
+<script type="text/javascript" src="lib/datetimepicker/bootstrap-datetimepicker.js"></script>
+<script type="text/javascript" src="lib/datetimepicker/locales/bootstrap-datetimepicker.fr.js"></script>
+<script type="text/javascript">
+	   $(function(){
+		   require.config({
+			   paths: {
+				   echarts: 'http://echarts.baidu.com/build/dist'
+			   }
+		   });
+
+		   var option = {
+			   title : {
+				   /*text: '酒店UED项目文档管理',
+				    subtext: '纯属虚构'*/
+			   },
+			   tooltip : {
+				   trigger: 'axis'
+			   },
+			   legend: {
+//			data:['变更','团队','项目']
+				   data: []
+			   },
+			   toolbox: {
+				   show : true,
+				   feature : {
+					   dataView : {show: true, readOnly: false},
+					   restore : {show: true},
+					   saveAsImage : {show: true}
+				   }
+			   },
+			   calculable : true,
+			   xAxis : [
+				   /*{
+				    type : 'category',
+				    data : ['2015-01','2015-02','2015-03','2015-04','2015-05','2015-06','2015-07','2015-08','2015-09','2015-10','2015-11','2015-12']
+				    }*/
+			   ],
+			   yAxis : [
+				   {
+					   type : 'value'
+				   }
+			   ],
+			   series : [
+				   /*{
+				    name:'变更',
+				    type:'bar',
+				    data:[2, 5, 9, 26, 28, 39, 33, 31, 22, 10, 6, 2],
+				    itemStyle: { normal: { label: { show: true, position: 'top'}}}
+				    },
+				    {
+				    name:'团队',
+				    type:'bar',
+				    data:[2, 5, 9, 26, 28, 39, 33, 31, 22, 10, 6, 2],
+				    itemStyle: { normal: { label: { show: true, position: 'top'}}}
+				    },
+				    {
+				    name:'项目',
+				    type:'bar',
+				    data:[2, 4, 7, 23, 25, 34, 23, 12, 32, 20, 6, 3],
+				    itemStyle: { normal: { label: { show: true, position: 'top'}}}
+				    }*/
+			   ]
+		   };
+		   var myChart;
+		   require(['echarts', 'echarts/chart/bar'], function(ec){
+			   myChart = ec.init($('#main')[0]);
+		   });
+
+		   function updateEcharts(ajaxData){
+			   option.xAxis = [],
+					   option.legend.data = [],
+					   option.series = [];
+			   option.xAxis.push({
+				   type: 'category',
+				   data: ajaxData.xData
+			   })
+			   $.each(ajaxData.yData, function(k, v){
+				   var item = {};
+				   item.name = k;
+				   item.type = 'bar';
+				   item.data = v;
+				   item.itemStyle = { normal: { label: { show: true, position: 'top'}}};
+				   option.series.push(item);
+				   option.legend.data.push(k);
+			   })
+			   myChart.clear();
+			   myChart.setOption(option);
+		   }
+
+		   $('.form_date').datetimepicker({
+			   weekStart: 1,
+			   todayBtn:  1,
+			   autoclose: 1,
+			   todayHighlight: 1,
+			   startView: 2,
+			   minView: 2,
+			   forceParse: 0,
+			   initialDate: new Date()
+		   });
+
+		   var resizeTimer = null;
+		   $(window).on('resize', function () {
+					   if (resizeTimer) {
+						   clearTimeout(resizeTimer)
+					   }
+					   resizeTimer = setTimeout(function(){
+						   myChart.clear();
+						   myChart.setOption(option);
+					   }, 400);
+				   }
+		   );
+
+		   $('#btn-search').on('click', function(){
+			   $.ajax({
+				   type: "get",
+				   url: "report",
+				   data: $('.echarts-filter-box').serialize(),
+				   success: function(ajaxData){
+					   updateEcharts(ajaxData);
+				   }
+			   });
+		   })
+	   })
+</script>
+</body>

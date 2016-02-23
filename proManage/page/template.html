@@ -1,0 +1,435 @@
+<script type="text/html" class="backboneTemplate" id="list">
+	<div class="wrapper">
+		<div id="proList" style="background:#fff;padding:10px;">
+			<h2>搜索</h2>
+			<div class="input-group mb20">
+				<span class="input-group-addon">
+					<span class="glyphicon glyphicon-search" id="search"></span>
+				</span>
+				<input type="text" class="form-control" id="searchBox" placeholder="项目名称 / 项目成员" value="<%= keyword %>">
+			</div>
+            <div id="searchList">
+                <p style="font-size:12px;color:#666">记录总数：
+                    <span style="font-weight:bold" id="totalCount"></span>
+                </p>
+                <table class="table table-hover list-table">
+                    <thead>
+                        <tr style="background:#eee;">
+                            <th style="width:10%;">类型</th>
+                            <th style="width:30%;">名称</th>
+                            <th style="width:20%;">标签</th>
+                            <th style="width:13%;">经办人</th>
+                            <th style="width:17%;">创建时间</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listTbody"></tbody>
+                </table>
+                <div id="paging"></div>
+            </div>
+		</div>
+	</div>
+</script>
+
+<script type="text/html" class="backboneTemplate" id="listData">
+    <% _.each(items,function(item,key){ %>
+    <tr>
+        <td><%= item.proClass%></td>
+        <td>
+            <a href="#item/<%= item.id%>" class="itemLink">
+                <span class="proName"><%= item.proName %></span>
+            </a>
+        </td>
+	    <td>
+		    <% _.map(item.tag,function(tag,key){%>
+		    <span class="label
+					    <% if(tag == 'Online'){ %>tag-green<% } %>
+					    <% if(tag == 'Offline'){ %>tag-blue<% } %>
+					    <% if(tag == 'Mobile'){ %>tag-pink<% } %>
+					    <% if(tag == '物料'){ %>tag-yellow<% } %>
+					    "><%= tag%>
+		    </span>
+		    <%})%> <% _.each(item.person,function(item,key){ if(item.isOperator){ %>
+		    <a href="javascript:" class="operator"><%= item.value %></a>
+		    <% } }) %>
+	    </td>
+	    <td style="color:#999"><%= item.createDate%></td>
+    </tr>
+    <% }) %>
+</script>
+
+<script type="text/html" class="backboneTemplate" id="detail">
+	<div class="wrapper">
+		<div class="in-wrapper" style="margin-top:28px;box-shadow:0px 4px 2px #888888;">
+			<div class="btn-group">
+				<a href="javascript:;" class="edit btn btn-default" data-target="proName">Edit</a>
+				<a href="javascript:;" class="save btn btn-default" data-target="proName">Save</a>
+			</div>
+			<img src="img/<%= item.proTypeIcon%>" title="<%= item.proClass%>" class="hImg">
+			<div style="margin-left:80px;">
+				<h2 id="proName"><%= item.proName%></h2>
+				<div class="tags-wrap">
+					<% _.map(item.tag,function(tag,key){%>
+					<span class="label <% if(tag == 'Online'){ %>tag-green<% } else if(tag == 'Offline'){ %>tag-blue<% } else if(tag == 'Mobile'){ %>tag-pink<% } else if(tag == '物料'){ %>tag-yellow<% } %>"><%= tag%></span>
+					<%})%>
+				</div>
+				<div class="tags-edit-wrap hidden" id="tag">
+					<label class="checkbox-inline">
+						<input type="checkbox" data-value="Online" <% if(_.contains(item.tag, 'Online')){%> checked <%} %>>
+						Online
+					</label> 
+					<label class="checkbox-inline">
+						<input type="checkbox" data-value="Offline" <% if(_.contains(item.tag, 'Offline')){%> checked <%} %>>
+						Offline
+					</label>
+					<label class="checkbox-inline"> 
+						<input type="checkbox" data-value="Mobile" <% if(_.contains(item.tag, 'Mobile')){%> checked <%} %>>
+						Mobile
+					</label>
+					<label class="checkbox-inline"> 
+						<input type="checkbox" data-value="物料" <% if(_.contains(item.tag, '物料')){%> checked <%} %>>
+						物料
+					</label>
+				</div>
+				&emsp;&emsp;
+				<span class="fs12">更新于：<%= item.createDate%></span>
+			</div>
+		</div>
+		<div class="in-wrapper">
+			<div class="itemInfo">
+				<div class="clearfix">
+					<div class="btn-group">
+						<a href="javascript:;" class="edit btn btn-default" data-target="proDes">Edit</a>
+						<a href="javascript:;" class="save btn btn-default" data-target="proDes">Save</a>
+					</div>
+					<h3>项目简介</h3>
+				</div>
+				<div id="proDes" class="content"><%= item.proDes%></div>
+			</div>
+			<div class="subItemInfo">
+				<div class="clearfix">
+					<div class="btn-group">
+						<a href="javascript:;" class="edit btn btn-default" data-target="cp4">Edit</a>
+						<a href="javascript:;" class="save btn btn-default" data-target="cp4">Save</a>
+					</div>
+					<h4>CP4</h4>
+				</div>
+				<div id="cp4" class="content link"><%= item.cp4%></div>
+			</div>
+			<div class="itemInfo">
+				<div class="clearfix">
+					<div class="btn-group">
+						<a href="javascript:;" class="editPerson btn btn-default" data-target="person">Edit</a>
+						<a href="javascript:;" class="savePerson btn btn-default" data-target="person">Save</a>
+					</div>
+					<h3>项目成员 <span class="tips">(单选框为经办人)</span></h3>
+				</div>
+				<div id="person" class="content">
+					<% _.map(item.person,function(person){ %>
+					<p>
+						<i style="display:inline-block;width:60px;text-align:right;margin-right:20px;"><%= person.group%>：</i>
+						<span style="display:inline-block;width:300px;"><%= person.value%></span>
+						<input type="radio" class="c-radio" name="operator" disabled " <% if(person.isOperator){  %> checked <% } %> />
+					</p>
+					<%})%>
+				</div>
+			</div>
+			<div class="itemInfo">
+				<h3>前端Hifi原型</h3>
+				<div class="subItemInfo">
+					<div class="clearfix">
+						<div class="btn-group">
+							<a href="javascript:;" class="edit btn btn-default" data-target="cssLink">Edit</a>
+							<a href="javascript:;" class="save btn btn-default" data-target="cssLink">Save</a>
+						</div>
+						<h4>原型地址</h4>
+					</div>
+					<div id="cssLink" class="content link"><%= item.cssLink%></div>
+				</div>
+				<div class="subItemInfo">
+					<div class="clearfix">
+						<div class="btn-group">
+							<a href="javascript:;" class="edit btn btn-default" data-target="repository">Edit</a>
+							<a href="javascript:;" class="save btn btn-default" data-target="repository">Save</a>
+						</div>
+						<h4>仓库分支</h4>
+					</div>
+					<div id="repository" class="content"><%= item.repository%></div>
+				</div>
+				<div class="subItemInfo">
+					<div class="clearfix">
+						<div class="btn-group">
+							<a href="javascript:;" class="edit btn btn-default" data-target="picsLink">Edit</a>
+							<a href="javascript:;" class="save btn btn-default" data-target="picsLink">Save</a>
+						</div>
+						<h4>图片发布地址</h4>
+					</div>
+					<div id="picsLink" class="content link"><%= item.picsLink%></div>
+				</div>
+			</div>
+			<div class="itemInfo">
+				<div class="clearfix">
+					<div class="btn-group">
+						<a href="javascript:;" class="edit btn btn-default" data-target="lowfiLink">Edit</a>
+						<a href="javascript:;" class="save btn btn-default" data-target="lowfiLink">Save</a>
+					</div>
+					<h3>Lowfi</h3>
+				</div>
+				<div id="lowfiLink" class="content link"><%= item.lowfiLink%></div>
+			</div>
+			<div class="itemInfo">
+				<div class="clearfix">
+					<div class="btn-group">
+						<a href="javascript:;" class="editVI btn btn-default" data-target="viLink">Edit</a>
+						<a href="javascript:;" class="saveVI btn btn-default" data-target="viLink">Save</a>
+					</div>
+					<h3>视觉稿</h3>
+				</div>
+                <div id="uploadBox"></div>
+			</div>
+		</div>
+	</div>
+</script>
+
+<script type="text/html" class="backboneTemplate" id="add">
+	<div class="wrapper">
+		<div class="in-wrapper" style="margin-top:28px;box-shadow:0px 4px 2px #888888;">
+			<img src="img/newDoc.png" style="float:left; width:56px;">
+			<div style="margin-left:80px;font-size:12px">
+				<h2>新项目文档</h2>
+			</div>
+		</div>
+		<div class="in-wrapper">
+			<form id="add-form">
+				<table class="table table-responsive add-table">
+					<tr>
+						<th>业务线类型</th>
+						<td>
+							<div id="tags">
+								<label class="checkbox-inline">
+									<input type="checkbox" data-value="Online">
+									Online
+								</label>&emsp;
+								<label class="checkbox-inline">
+									<input type="checkbox" data-value="Offline">
+									Offline
+								</label>
+								<label class="checkbox-inline">&emsp;
+									<input type="checkbox" data-value="Mobile">
+									Mobile
+								</label>
+								<label class="checkbox-inline">&emsp;
+									<input type="checkbox" data-value="物料">
+									物料
+								</label>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<th><span class="color-red">*</span>项目类型/名称</th>
+						<td>
+							<div class="form-item-box">
+								<select class="form-control" id="proClass" style="width:90px;display: inline-block;">
+									<option value="变更"> 变更
+									<option value="项目"> 项目
+									<option value="团队"> 团队
+								</select>
+								<input id="editProName" class="form-control" style="width: 710px; display: inline-block;"  data-rule-required="true" data-msg-required="请输入您的项目名称"/>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<th>项目简介</th>
+						<td>
+							<div contenteditable id="editDes" style="height:6em;"></div>
+						</td>
+					</tr>
+					<tr>
+						<th>CP4</th>
+						<td>
+							<div contenteditable id="dataCP4"></div>
+						</td>
+					</tr>
+					<tr>
+						<th><span class="color-red">*</span>项目成员
+							<br />
+							<span class="tips">单选框为经办人</span>
+						</th>
+						<td>
+							<div id="editPerson" class="form-item-box">
+								<label>
+									<i>CSS</i>
+									<input type="text" class="form-control" data-group="CSS" list="CSS-datalist">
+									<datalist id="CSS-datalist">
+										<option value="王卓">
+										<option value="江毅平">
+										<option value="郑俊">
+										<option value="王伟红">
+										<option value="纪铜雪">
+										<option value="蒋林捷">
+										<option value="李志嘉">
+										<option value="汪兆飞">
+									</datalist>
+									<input type="radio" class="c-radio" name="operator" required data-msg-required="请在单选框中选择经办人"/>
+								</label>
+								<label>
+									<i>VI</i>
+									<input type="text" class="form-control" data-group="VI" list="VI-datalist">
+									<datalist id="VI-datalist">
+										<option value="苏伦">
+										<option value="杨思溢">
+										<option value="邱志鑫">
+										<option value="苏忆晨">
+										<option value="张丹">
+										<option value="吴慧敏">
+										<option value="顾帆">
+										<option value="洪云霓">
+										<option value="唐静">
+									</datalist>
+									<input type="radio" class="c-radio" name="operator" />
+								</label>
+								<label>
+									<i>UI</i>
+									<input type="text" class="form-control" data-group="UI" list="UI-datalist">
+									<datalist id="UI-datalist">
+										<option value="吕华">
+										<option value="李文锦">
+										<option value="张晶">
+										<option value="徐承豪">
+										<option value="朱蝶">
+										<option value="强晶">
+										<option value="杜露">
+										<option value="李雪娇">
+										<option value="林传毅">
+									</datalist>
+									<input type="radio" class="c-radio" name="operator" />
+								</label>
+								<label>
+									<i>PM</i>
+									<input type="text" class="form-control" data-group="PM">
+									<input type="radio" class="c-radio" name="operator" />
+								</label>
+							</div>
+						</td>
+					</tr>
+					<tr>
+						<th>前端Hifi原型</th>
+						<td>
+							<div id="editCssLink" contenteditable></div>
+						</td>
+					</tr>
+					<tr>
+						<th>图片发布地址</th>
+						<td>
+							<div id="editPicsLink" contenteditable></div>
+						</td>
+					</tr>
+					<tr>
+						<th>仓库分支</th>
+						<td>
+							<div contenteditable id="editRepository"></div>
+						</td>
+					</tr>
+					<tr>
+						<th>UI</th>
+						<td>
+							<div id="editLowfiLink" contenteditable></div>
+						</td>
+					</tr>
+					<tr>
+						<th>VI</th>
+						<td id="uploadBox"></td>
+					</tr>
+				</table>
+				<div id="isConfirmBtns">
+					<input type="submit" class="btn btn-primary" id="addItemBtn" value="确定">&emsp;&emsp;
+					<a href="#list/1" class="btn btn-default">取消</a>
+				</div>
+			</form>
+		</div>
+	</div>
+</script>
+
+<script type="text/html" class="backboneTemplate" id="header">
+	<div class="header">
+		<img src="img/logo.png" />
+		<h1 class="m-title">Projects Docs</h1>
+		<a class="version" href="version.html" target="_blank">V1.3</a>
+		<a class="m-list-link" href="<%= pageLink %>"><%= listPageTitle %></a>
+		<a href="<%= hash %>" class="label label-primary btn-add">
+			<span class="glyphicon <%= ico%>"> </span><%= title %>
+		</a>
+		<a href="#report" class="m-list-link pull-right">报表</a>
+	</div>
+</script>
+
+<script type="text/html" class="backboneTemplate" id="upload">
+    <input type="file" id="files" multiple style="display:block;margin: 5px 0 10px;">
+    <div id="editVI" class="viBox-wrap"></div>
+</script>
+
+<script type="text/html" class="template" id="uploadCreateData">
+	<div class="viBox uploadifive-queue-item">
+		<a href="" target="_blank" class="imgA">
+			<div class="img-wrap">
+				<img src="" class="viImg" title="">
+			</div>
+			<div class="picName"><span class="filename"></span><span class="fileinfo"></span></div>
+            <div class="progress">
+                <div class="progress-bar"></div>
+            </div>
+		</a>
+		<a href="javascript:;" class="glyphicon glyphicon-remove" data-path=""></a>
+	</div>
+</script>
+
+<script type="text/html" class="backboneTemplate" id="uploadEditData">
+    <a href="<%= path %>" target="_blank" class="imgA">
+        <div class="img-wrap">
+            <img src="<%= map_img_path + thumbnail %>" class="viImg" title="<%= name %>">
+        </div>
+        <div class="picName"><%= name %></div>
+		<div class="progress">
+			<div class="progress-bar" style="width: 100%;"></div>
+		</div>
+    </a>
+    <a href="javascript:;" class="glyphicon glyphicon-remove <% if(!isEdit){ %> hidden <% } %>" data-path="<%= path %>"></a>
+</script>
+
+<script type="text/html" class="backboneTemplate" id="report">
+	<div class="report-wrap">
+		<form class="form-inline echarts-filter-box">
+			<div class="form-group">
+				<label>分类</label>
+				<select class="form-control" name="type">
+					<option value="proClass">项目类型</option>
+					<option value="tag">业务线</option>
+				</select>
+			</div>
+			<div class="form-group">
+				<label for="startDate" class="control-label">开始日期</label>
+				<div class="input-group date form_date col-md-5" data-date="" data-date-format="yyyy-mm-dd" data-link-field="startDate" data-link-format="yyyy-mm-dd">
+					<input class="form-control" size="16" type="text" value="<%= startDate %>" readonly>
+					<span class="input-group-addon">
+						<span class="glyphicon glyphicon-calendar"></span>
+					</span>
+				</div>
+				<input type="hidden" id="startDate" name="startDate" value="<%= startDate %>" />
+				<br />
+			</div>
+			<div class="form-group">
+				<label for="endDate" class="control-label">结束日期</label>
+				<div class="input-group date form_date col-md-5" data-date="" data-date-format="yyyy-mm-dd" data-link-field="endDate" data-link-format="yyyy-mm-dd">
+					<input class="form-control" size="16" type="text" value="<%= endDate %>" readonly>
+					<span class="input-group-addon">
+						<span class="glyphicon glyphicon-calendar"></span>
+					</span>
+				</div>
+				<input type="hidden" id="endDate" name="endDate" value="<%= endDate %>" />
+				<br />
+			</div>
+			<a href="javascript:;" class="btn btn-primary btn-search" id="btn-search">搜索</a>
+		</form>
+		<div id="main" class="echarts-wrap"></div>
+	</div>
+</script>
+
